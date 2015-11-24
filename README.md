@@ -89,5 +89,23 @@ module.exports = {
     externals: {
     }
 };
-
 ```
+
+### Sample NPM Configuration:
+Adding a script which will automatically update the version before building.
+```
+{
+  "name": "My AngularJS App",
+  "version": "17.1.0",
+  "description": "App descriptions",
+  "author": "...",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "npm version minor && rm -rf www/* && webpack",
+    "devserver": "webpack-dev-server --port 9100 --progress --colors --no-minimize"
+  }
+  ... etc
+}  
+```
+Usage
+	npm run-script build
