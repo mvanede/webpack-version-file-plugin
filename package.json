@@ -1,0 +1,35 @@
+{
+  "name": "version-file",
+  "version": "0.1",
+  "description": "Generates a file with your apps name, version and build date",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mvanede/webpack-version-file-plugin.git"
+  },
+  "keywords": [
+    "version",
+    "file",
+    "build",
+    "date"
+  ],
+  "author": {
+    "name": "Mirko van Ede",
+    "email": "info@mirkovanede.com"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mvanede/webpack-version-file-plugin/issues"
+  },
+  "homepage": "https://github.com/mvanede/webpack-version-file-plugin",
+  "dependencies": {
+    "ejs": "~1.0.0",
+    "underscore": "~1.6.0"
+  },
+  "devDependencies": {
+    "mocha": "~1.18.2"
+  }
+}
