@@ -46,7 +46,7 @@ var path = require('path'),
     wwwPath = path.join(__dirname, 'www'),
     pkg = require('./package.json'),
     HtmlWebpackPlugin = require('html-webpack-plugin'),
-	VersionFile = require('version-file'),
+	VersionFile = require('webpack-version-file-plugin'),
 
 
 
