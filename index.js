@@ -15,11 +15,8 @@ function VersionFile(options) {
 	
     //set default config data
     var optionsObject = options || {};
-    optionsObject = _.defaults(optionsObject, defaultOptions);
-	
-	self.options = optionsObject || {};
-	self.options['package'] = require(options.packageFile);
-	
+	self.options = _.defaults(optionsObject, defaultOptions);
+	self.options['package'] = require(self.options.packageFile);
 }
 	
 VersionFile.prototype.apply = function(){
