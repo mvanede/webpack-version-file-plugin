@@ -62,7 +62,7 @@ VersionFile.prototype.apply = function() {
  */
 VersionFile.prototype.writeFile = function(templateContent) {
   var self = this;
-  fileContent = ejs.render(templateContent, self.options);
+  var fileContent = ejs.render(templateContent, self.options);
   fs.writeFile(self.options.outputFile, fileContent, {
     flag: 'w'
   });
