@@ -1,6 +1,7 @@
 "use strict";
 
 const fs = require('fs');
+const path = require('path');
 const _ = require('underscore');
 const ejs = require('ejs');
 const chalk = require('chalk');
@@ -63,9 +64,18 @@ VersionFile.prototype.apply = function() {
 VersionFile.prototype.writeFile = function(templateContent) {
   var self = this;
   var fileContent = ejs.render(templateContent, self.options);
+  self.ensureDirExists(path.dirname(self.options.outputFile));
   fs.writeFileSync(self.options.outputFile, fileContent, {
     flag: 'w'
   });
+}
+
+VersionFile.prototype.ensureDirExists = function(dirpath) {
+  try {
+    fs.mkdirSync(dirpath, { recursive: true });
+  } catch (err) {
+    if (err.code !== 'EEXIST') throw err;
+  }
 }
 
 module.exports = VersionFile;
