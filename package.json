@@ -26,9 +26,9 @@
   },
   "homepage": "https://github.com/mvanede/webpack-version-file-plugin",
   "dependencies": {
+    "chalk": "^3.0.0",
     "ejs": "~> 2.5.5",
-    "underscore": "~1.6.0",
-    "fs": "latest"
+    "underscore": "~1.6.0"
   },
   "devDependencies": {
     "mocha": "~1.18.2"
