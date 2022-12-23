@@ -74,8 +74,7 @@ VersionFile.prototype.emitFile = function(templateContent, compilation) {
   compilation.hooks.processAssets.tap(
       {
         name: 'WebpackVersionFilePlugin',
-        stage: compilation.PROCESS_ASSETS_STAGE_ADDITIONAL,
-        additionalAssets: true
+        stage: compilation.PROCESS_ASSETS_STAGE_ADDITIONAL
       },
       (assets) => {
         compilation.emitAsset(
