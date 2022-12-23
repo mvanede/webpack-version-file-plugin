@@ -5,6 +5,7 @@ const path = require('path');
 const _ = require('underscore');
 const ejs = require('ejs');
 const chalk = require('chalk');
+const { sources } = require('webpack');
 
 function VersionFile(options) {
   var self = this;
@@ -19,12 +20,12 @@ function VersionFile(options) {
   //Set default config data
   var optionsObject = options || {};
   self.options = _.defaults(optionsObject, defaultOptions);
-  
+
   // Check for missing arguments
   if (!this.options.packageFile) {
     throw new Error(chalk.red('Expected path to packageFile'))
   }
-  
+
   try {
     self.options['package'] = require(self.options.packageFile);
   } catch (err) {
@@ -33,49 +34,56 @@ function VersionFile(options) {
 
 }
 
-VersionFile.prototype.apply = function() {
+VersionFile.prototype.apply = function(compiler) {
   var self = this;
   self.options.currentTime = new Date();
 
-  /*
-   * If we are given a template string in the config, then use it directly.
-   * But if we get a file path, fetch the content then use it.
-   */
-  if (self.options.templateString) {
-    self.writeFile(self.options.templateString);
-  } else {
-    fs.readFile(self.options.template, {
-      encoding: 'utf8'
-    }, function(error, content) {
-      if (error) {
-        throw error;
-        return;
-      }
+  compiler.hooks.thisCompilation.tap(
+      'WebpackVersionFilePlugin',
+      (compilation) => {
+        /*
+         * If we are given a template string in the config, then use it directly.
+         * But if we get a file path, fetch the content then use it.
+         */
+        if (self.options.templateString) {
+          self.emitFile(self.options.templateString, compilation);
+        } else {
+          fs.readFile(self.options.template, {
+            encoding: 'utf8'
+          }, function(error, content) {
+            if (error) {
+              throw error;
+              return;
+            }
 
-      self.writeFile(content);
-    });
-  }
+            self.emitFile(content, compilation);
+          });
+        }
+      }
+  )
 };
 
 /**
- * Renders the template and writes the version file to the file system.
+ * Renders the template and emit the version file
  * @param templateContent
+ * @param compilation
  */
-VersionFile.prototype.writeFile = function(templateContent) {
+VersionFile.prototype.emitFile = function(templateContent, compilation) {
   var self = this;
   var fileContent = ejs.render(templateContent, self.options);
-  self.ensureDirExists(path.dirname(self.options.outputFile));
-  fs.writeFileSync(self.options.outputFile, fileContent, {
-    flag: 'w'
-  });
-}
-
-VersionFile.prototype.ensureDirExists = function(dirpath) {
-  try {
-    fs.mkdirSync(dirpath, { recursive: true });
-  } catch (err) {
-    if (err.code !== 'EEXIST') throw err;
-  }
+  compilation.hooks.processAssets.tap(
+      {
+        name: 'WebpackVersionFilePlugin',
+        stage: compilation.PROCESS_ASSETS_STAGE_ADDITIONAL,
+        additionalAssets: true
+      },
+      (assets) => {
+        compilation.emitAsset(
+            self.options.outputFile.replace(compilation.compiler.outputPath + '/', ''),
+            new sources.RawSource(fileContent)
+        );
+      }
+  );
 }
 
 module.exports = VersionFile;
