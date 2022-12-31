@@ -97,7 +97,7 @@ Adding a script which will automatically update the version before building.
   "author": "...",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "npm version minor && rm -rf www/* && webpack",
+    "build": "npm version minor && rm -rf www/* && webpack -p --mode production",
   }
   ... etc
 }  
