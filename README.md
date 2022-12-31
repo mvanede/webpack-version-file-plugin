@@ -1,97 +1,93 @@
 Webpack Version File Plugin
 ============
-
 Plugin for Webpack which allows you to generate a static version file that can be deployed. Inspired by [morficus/version-file](https://github.com/morficus/version-file)
+
+## Compatibility
+This plugin is compatible with **webpack 5.0 and higher.**
 
 ## Use case
 This plugin can be used to automatically let Webpack generate a file containing version information, based on the information in your NPM package.json.
 
-Can be used to let your webapp detect when a new version is available.
+Can, for example, be used to let your webapp detect when a new version is available.
 
 
 ## Sample outfile file content
-
-	{
-		"version" : {
-			"name":      "My AngularJS App",
-			"buildDate": "Mon Nov 23 2015 14:26:25 GMT+0100 (CET)",
-			"version":   "5.37.0"
-		}
-	}
+```
+{
+  "version" : "5.37.0",
+  "name": "My AngularJS App",
+  "buildDate": "Mon Nov 23 2015 14:26:25 GMT+0100 (CET)"
+}
+```
 
 ## Available config options:
 
-- outputFile: the path and filename of where to store the output
-- template: path to your template
-- templateString: an [EJS](https://www.npmjs.org/package/ejs) template string
-- packageFile: path to your package.json. 
-- extras: {}: an object for any extra information you want to use in your template
+- **outputFile**: the path and filename of where to store the output. _Defaults to `version.text` in your build directory._
+- **templateString**: an [EJS](https://www.npmjs.org/package/ejs) template string.
+- **template**: path to your EJS template file. _Overwrites templateString option_
+- **packageFile**: path to your package.json. _Defaults to `./package.json`_
+- **extras**: {}: an object for any extra information you want to use in your template.
 
 ## Templating
 
 This modules uses [EJS](https://www.npmjs.org/package/ejs) as its templating system.
 As indicated in the config options section, you can utilize your own template by either (a) passing in a path to an external file or (b) typing the template in-line.
 
-The available options are:
-- package: contains all keys of your package.json
-- buildDate: a human-readable time stamp
-- extras: an object containing any custom / additional data that is needed in the template
+The available keys are:
+- **package**: contains all keys of your package.json
+- **buildTime**: Date object containing build time.
+- **extras**: an object containing any custom / additional data that is needed in the template
 
-### Sample Webpack Configuration:
-
+## Sample Webpack Configuration:
 ```
-var path = require('path'),
-    webpack = require("webpack"),
-    libPath = path.join(__dirname, 'src'),
-    wwwPath = path.join(__dirname, 'www'),
-    pkg = require('./package.json'),
-    HtmlWebpackPlugin = require('html-webpack-plugin'),
-	VersionFile = require('webpack-version-file-plugin'),
-
-
-
+const path = require('path');
+const VersionFilePlugin = require('webpack-version-file-plugin');
+const buildPath = path.join(__dirname, 'build');
+const srcPath = path.join(__dirname, 'src');
 
 module.exports = {
-    entry: path.join(libPath, 'index.js'),
+  entry: path.join(srcPath, 'index.js'),
     output: {
-        path: path.join(wwwPath),
-        filename: 'bundle-[hash:6].js'
-    },
-    module: {
-        loaders: [
-			{
-	            test: /\.html$/,
-	            loader: 'file?name=templates/[name]-[hash:6].html'
-	        }, {
-	            test: /\.(png|jpg)$/,
-	            loader: 'file?name=img/[name].[ext]'
-	        }, {
-	            test: /\.css$/,
-	            loader: "style!css"
-	        }
-		]
-    },
-    resolve: {
-        root: [path.join(__dirname, "src/libs")]
+      path: buildPath,
+      filename: 'bundle-[fullhash:6].js'
     },
     plugins: [
-        new HtmlWebpackPlugin({
-            filename: 'index.html',
-            pkg: pkg,
-            template: path.join(libPath, 'index.html')
-        }),
-		new VersionFile({
-			packageFile:path.join(__dirname, 'package.json'),
-			template: path.join(__dirname, 'version.ejs'),
-			outputFile: path.join(wwwPath, 'version.json')
-		})
-	],
-    externals: {
-    }
+	  new VersionFilePlugin({
+        outputFile: 'version.txt',
+        template: 'version.ejs',
+        extras: {
+          'foo': 'bar'
+        }
+      }),
+      new VersionFilePlugin({
+        outputFile: './foo/bar/rawr.json',
+        templateString: '{\n' +
+            '  "name": "<%= package.name %>",\n' +
+            '  "version": "<%= package.version %>",\n' +
+            '  "buildDate": "<%= buildTime.toString() %>",\n' +
+            '  "author": "<%= package.author.name %>",\n' +
+            '  "foo": "<%= extras.foo %>"\n' +
+            '}\n',
+        extras: {
+            'foo': "bar"
+        }
+      })
+	]
 };
+
 ```
 
-### Sample NPM Configuration:
+## Sample EJS Template
+```
+export default {
+  "name":      "<%= package.name %>",
+  "buildDate": "<%= buildTime.toString() %>",
+  "version":   "<%= package.version %>"
+}
+```
+
+
+## Sample NPM Configuration:
 Adding a script which will automatically update the version before building.
 ```
 {
@@ -102,10 +98,9 @@ Adding a script which will automatically update the version before building.
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "npm version minor && rm -rf www/* && webpack",
-    "devserver": "webpack-dev-server --port 9100 --progress --colors --no-minimize"
   }
   ... etc
 }  
 ```
-Usage
-	npm run-script build
+### Usage
+`npm run-script build`
