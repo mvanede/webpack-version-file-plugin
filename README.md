@@ -60,7 +60,7 @@ module.exports = {
         }
       }),
       new VersionFilePlugin({
-        outputFile: './foo/bar/rawr.json',
+        outputFile: './foo/bar/version.json',
         templateString: '{\n' +
             '  "name": "<%= package.name %>",\n' +
             '  "version": "<%= package.version %>",\n' +
