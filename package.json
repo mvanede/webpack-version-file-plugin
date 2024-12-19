@@ -27,7 +27,6 @@
   "homepage": "https://github.com/mvanede/webpack-version-file-plugin",
   "dependencies": {
     "ejs": "^3.1.8",
-    "fs": "latest",
     "underscore": "^1.13.6"
   },
   "peerDependencies": {
