@@ -1,10 +1,10 @@
 {
   "name": "webpack-version-file-plugin",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Generates a file with your app's package.json information and builddate",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha --timeout 10000 \"test/**/*.test.js\""
   },
   "repository": {
     "type": "git",
@@ -26,13 +26,17 @@
   },
   "homepage": "https://github.com/mvanede/webpack-version-file-plugin",
   "dependencies": {
-    "ejs": "^3.1.8",
-    "underscore": "^1.13.6"
+    "ejs": "^6.0.1"
   },
   "peerDependencies": {
-    "webpack": ">=5.0.0"
+    "webpack": ">=5.105.0 <6.0.0"
   },
   "devDependencies": {
     "mocha": "^10.2.0"
+  },
+  "overrides": {
+    "mocha": {
+      "serialize-javascript": "7.0.5"
+    }
   }
 }
