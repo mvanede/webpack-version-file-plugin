@@ -3,7 +3,7 @@ Webpack Version File Plugin
 Plugin for Webpack which allows you to generate a static version file that can be deployed. Inspired by [morficus/version-file](https://github.com/morficus/version-file)
 
 ## Compatibility
-This plugin is compatible with **webpack 5.0 and higher.**
+This plugin is compatible with **webpack 5.105 through webpack 5.x**.
 
 ## Use case
 This plugin can be used to automatically let Webpack generate a file containing version information, based on the information in your NPM package.json.
@@ -22,7 +22,7 @@ Can, for example, be used to let your webapp detect when a new version is availa
 
 ## Available config options:
 
-- **outputFile**: the path and filename of where to store the output. _Defaults to `version.text` in your build directory._
+- **outputFile**: a relative asset path and filename for the output. Absolute paths and traversal segments are rejected. _Defaults to `version.txt` in your build directory._
 - **templateString**: an [EJS](https://www.npmjs.org/package/ejs) template string.
 - **template**: path to your EJS template file. _Overwrites templateString option_
 - **packageFile**: path to your package.json. _Defaults to `./package.json`_
@@ -33,10 +33,16 @@ Can, for example, be used to let your webapp detect when a new version is availa
 This modules uses [EJS](https://www.npmjs.org/package/ejs) as its templating system.
 As indicated in the config options section, you can utilize your own template by either (a) passing in a path to an external file or (b) typing the template in-line.
 
+Templates are trusted build-time code. Do not allow untrusted contributors to
+provide templates, and do not expose secrets through `package` or `extras`.
+
 The available keys are:
 - **package**: contains all keys of your package.json
 - **buildTime**: Date object containing build time.
 - **extras**: an object containing any custom / additional data that is needed in the template
+
+Only these documented values are passed to templates; other plugin options are
+not available as template locals.
 
 ## Sample Webpack Configuration:
 ```
@@ -85,6 +91,16 @@ export default {
   "version":   "<%= package.version %>"
 }
 ```
+
+## Testing
+
+Run the automated webpack integration and constructor validation suite with:
+
+```
+npm test
+```
+
+The development test toolchain requires Node.js 20 or later.
 
 
 ## Sample NPM Configuration:

@@ -2,9 +2,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const _ = require('underscore');
 const ejs = require('ejs');
-const chalk = require('chalk');
 const { sources } = require('webpack');
 
 const defaultOptions = {
@@ -14,24 +12,68 @@ const defaultOptions = {
     extras: {}
 };
 
+function optionOrDefault(options, optionName) {
+    const hasOption = Object.prototype.hasOwnProperty.call(options, optionName);
+    return hasOption && options[optionName] !== undefined
+        ? options[optionName]
+        : defaultOptions[optionName];
+}
+
+function validateOutputFile(outputFile) {
+    if (typeof outputFile !== 'string' || outputFile.length === 0) {
+        throw new Error('Missing path to outputfile (config option: <outputFile>)');
+    }
+
+    const assetName = outputFile.replace(/\\/g, '/');
+    const segments = assetName.split('/');
+
+    if (
+        path.isAbsolute(outputFile) ||
+        path.win32.isAbsolute(outputFile) ||
+        /^[a-zA-Z]:/.test(outputFile) ||
+        assetName.includes('\0') ||
+        segments.includes('..')
+    ) {
+        throw new Error('Output file must be a relative asset path without traversal segments');
+    }
+
+    const normalizedAssetName = path.posix.normalize(assetName).replace(/^\.\/+/, '');
+
+    if (
+        normalizedAssetName.length === 0 ||
+        normalizedAssetName === '.' ||
+        normalizedAssetName.endsWith('/')
+    ) {
+        throw new Error('Output file must name a file');
+    }
+
+    return normalizedAssetName;
+}
+
 class VersionFilePlugin {
 
     constructor(options = {}) {
-        // Set default config data
-        var optionsObject = options || {};
-        this.options = _.defaults(optionsObject, defaultOptions);
+        const optionsObject = options || {};
+        this.options = {
+            outputFile: optionOrDefault(optionsObject, 'outputFile'),
+            packageFile: optionOrDefault(optionsObject, 'packageFile'),
+            templateString: optionOrDefault(optionsObject, 'templateString'),
+            template: optionOrDefault(optionsObject, 'template'),
+            extras: optionOrDefault(optionsObject, 'extras')
+        };
 
         // Check for missing arguments
-        if (!this.options.packageFile) {
-            throw new Error(chalk.red('Missing path to package.json (config option: <packageFile>)'))
+        if (typeof this.options.packageFile !== 'string' || this.options.packageFile.length === 0) {
+            throw new Error('Missing path to package.json (config option: <packageFile>)');
         }
 
-        if (!this.options.outputFile) {
-            throw new Error(chalk.red('Missing path to outputfile (config option: <outputFile>)'))
-        }
+        this.options.outputFile = validateOutputFile(this.options.outputFile);
 
-        if (!this.options.template && !this.options.templateString) {
-            throw new Error(chalk.red('Missing both a template file and template string. (config option: <template> or <templateString>)'))
+        if (
+            (!this.options.template || typeof this.options.template !== 'string') &&
+            (typeof this.options.templateString !== 'string' || this.options.templateString.length === 0)
+        ) {
+            throw new Error('Missing both a template file and template string. (config option: <template> or <templateString>)');
         }
 
         // Read the packagefile
@@ -39,7 +81,7 @@ class VersionFilePlugin {
             const package_contents = fs.readFileSync(this.options.packageFile, { encoding: 'utf8' });
             this.options['package'] = JSON.parse(package_contents);
         } catch (err) {
-            throw new Error(chalk.red(err))
+            throw new Error(String(err));
         }
     } /* constructor */
 
@@ -70,7 +112,11 @@ class VersionFilePlugin {
      * @param compilation
      */
     emitFile(templateContent, compilation) {
-        var fileContent = ejs.render(templateContent, this.options);
+        const templateLocals = Object.create(null);
+        templateLocals.package = this.options.package;
+        templateLocals.buildTime = this.options.buildTime;
+        templateLocals.extras = this.options.extras;
+        const fileContent = ejs.render(templateContent, templateLocals);
         compilation.hooks.processAssets.tap(
             {
                 name: 'WebpackVersionFilePlugin',
@@ -78,7 +124,7 @@ class VersionFilePlugin {
             },
             (assets) => {
                 compilation.emitAsset(
-                    this.options.outputFile.replace(compilation.compiler.outputPath + '/', ''),
+                    this.options.outputFile,
                     new sources.RawSource(fileContent)
                 );
             }
