@@ -1,0 +1,18 @@
+# Installed Node.js dependencies
+node_modules/
+
+# Test coverage output
+coverage/
+.nyc_output/
+
+# Local environment files; commit a dedicated example file when needed.
+.env
+.env.*
+!.env.example
+
+# Package-manager debug logs
+npm-debug.log*
+yarn-debug.log*
+
+# macOS Finder metadata
+.DS_Store
